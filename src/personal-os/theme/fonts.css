@@ -1,0 +1,12 @@
+/* Personal OS — webfonts for the Radix Themes integration.
+ *
+ * Served from Google Fonts (no local binaries shipped). For a production /
+ * offline build, download the families and replace this @import with local
+ * @font-face rules, or load them via next/font and remap --*-font-family in
+ * personal-os.css to the generated CSS variables.
+ *
+ *   Fraunces → --heading-font-family   (serif display)
+ *   DM Sans  → --default-font-family    (body / UI)
+ *   DM Mono  → --code-font-family        (eyebrows, kbd, numbers)
+ */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap");

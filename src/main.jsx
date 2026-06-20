@@ -1,5 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@radix-ui/themes/styles.css'
+import './personal-os/theme/fonts.css'
+import './personal-os/theme/personal-os.css'
 import './index.css'
 import App from './App.jsx'
 

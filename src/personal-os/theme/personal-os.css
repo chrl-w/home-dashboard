@@ -1,0 +1,127 @@
+/* ============================================================================
+   Personal OS — Radix Themes integration
+   ----------------------------------------------------------------------------
+   Drop-in theme config for @radix-ui/themes. Load order in your app:
+
+       import "@radix-ui/themes/styles.css";   // Radix Themes base
+       import "./theme/fonts.css";             // Fraunces / DM Sans / DM Mono
+       import "./theme/personal-os.css";       // <- this file
+
+   Then wrap your app with <AreaProvider area="work|pets|home"> (see
+   area-provider.tsx). It renders a <Theme> with the right accentColor /
+   grayColor and stamps `.pos-area-<area>` on the root so the overrides below
+   re-skin every Radix component to the active area.
+
+   APPROACH (per the Radix Themes guidance): pick the closest built-in accent +
+   gray, then override the key tokens to hit the exact Personal OS brand hexes.
+   Radix declares its scales with :where() (zero specificity), so the
+   `.pos-area-*` class selectors here win cleanly.
+   ============================================================================ */
+
+/* ---- Fonts: remap the three Radix typography tokens ---- */
+.radix-themes {
+  --default-font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+  --heading-font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  --code-font-family: "DM Mono", ui-monospace, "SF Mono", monospace;
+  /* Headings lean a touch heavier + tighter, matching the specimen */
+  --heading-font-weight: 600;
+  --letter-spacing-1: -0.01em;
+}
+
+/* ============================================================================
+   AREA · WORK — Teal   (base accent "teal", gray "sage")
+   ============================================================================ */
+.pos-area-work {
+  --accent-9:  #0cc4a0;
+  --accent-10: #16d4b0;
+  --accent-11: #2fe3c4;
+  --accent-contrast: #06231d;
+  --accent-track: #0cc4a0;
+  --accent-indicator: #0cc4a0;
+
+  --color-background: #091618;     /* page ground   */
+  --color-panel-solid: #112230;    /* solid cards   */
+  --focus-9: #0cc4a0;
+
+  --pos-accent: #0cc4a0;
+}
+
+/* ============================================================================
+   AREA · PETS — Amber   (base accent "bronze", gray "sand")
+   ============================================================================ */
+.pos-area-pets {
+  --accent-9:  #d4882a;
+  --accent-10: #e89c3e;
+  --accent-11: #f0b25e;
+  --accent-contrast: #1a1206;
+  --accent-track: #d4882a;
+  --accent-indicator: #d4882a;
+
+  --color-background: #130f09;
+  --color-panel-solid: #1e1608;
+  --focus-9: #d4882a;
+
+  --pos-accent: #d4882a;
+}
+
+/* ============================================================================
+   AREA · HOME — Plum   (base accent "purple", gray "mauve")
+   ============================================================================ */
+.pos-area-home {
+  --accent-9:  #8844cc;
+  --accent-10: #9c5ce0;
+  --accent-11: #b985f0;
+  --accent-contrast: #0d0a16;
+  --accent-track: #8844cc;
+  --accent-indicator: #8844cc;
+
+  --color-background: #0d0c18;
+  --color-panel-solid: #151228;
+  --focus-9: #8844cc;
+
+  --pos-accent: #8844cc;
+}
+
+/* ============================================================================
+   GLOW + brand utilities  (the things Radix Themes doesn't ship)
+   `--pos-accent` is set per area above, so all of these are area-aware.
+   ============================================================================ */
+:root,
+.radix-themes { --pos-accent: #0cc4a0; }   /* fallback before an area is set */
+
+/* Soft area-coloured halo — the Personal OS signature. */
+.pos-glow-sm { box-shadow: 0 0 10px color-mix(in srgb, var(--pos-accent) 22%, transparent); }
+.pos-glow    { box-shadow: 0 0 24px color-mix(in srgb, var(--pos-accent) 26%, transparent); }
+.pos-glow-lg { box-shadow: 0 0 48px color-mix(in srgb, var(--pos-accent) 30%, transparent); }
+
+/* Put a glow on any Radix solid Button without extra markup. */
+.pos-area button[data-accent-color]:where(.rt-variant-solid):not(:disabled),
+.pos-btn-glow { box-shadow: 0 0 24px color-mix(in srgb, var(--pos-accent) 28%, transparent); }
+
+/* Mono eyebrow — uppercase label above a heading. */
+.pos-eyebrow {
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--accent-11);
+}
+
+/* Display hero: Fraunces light; wrap the accented phrase in <em> for the
+   italic-semibold gradient treatment. */
+.pos-display {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 300; line-height: 1.12; letter-spacing: -0.02em;
+}
+.pos-display em {
+  font-style: italic; font-weight: 600;
+  background: linear-gradient(110deg, var(--pos-accent), color-mix(in srgb, var(--pos-accent) 55%, white));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--pos-accent) 30%, transparent));
+}
+
+/* Signal colours (fixed across areas) — for custom status UI. */
+.radix-themes {
+  --pos-success: #2ec882;
+  --pos-warning: #f0a030;
+  --pos-danger:  #e85070;
+}
