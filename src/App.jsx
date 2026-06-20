@@ -30,7 +30,7 @@ function initBlindStates() {
 }
 
 function Dashboard() {
-  const { status } = useHA() || {}
+  const { status, callService } = useHA() || {}
   const [lightStates, setLightStates] = useState(initLightStates)
   const [blindStates, setBlindStates] = useState(initBlindStates)
   const [expanded, setExpanded] = useState(new Set(['living']))
@@ -50,6 +50,9 @@ function Dashboard() {
       ...prev,
       [roomId]: { ...prev[roomId], [side]: value },
     }))
+    const room = ROOMS.find(r => r.id === roomId)
+    const entityId = room?.blinds?.[side]?.entityId
+    if (entityId) callService('cover', 'set_cover_position', { entity_id: entityId, position: value })
   }
 
   function handleScene(roomId, nextStates) {
