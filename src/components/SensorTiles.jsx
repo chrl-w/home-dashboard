@@ -30,7 +30,10 @@ export function SensorTiles() {
     <div className="pos-scroll-row" style={{ padding: '14px 20px 2px' }}>
       {SENSORS.map(s => {
         const entity = s.entityId ? entities[s.entityId] : null
-        const value = entity ? parseFloat(entity.state).toFixed(1).replace(/\.0$/, '') : s.mockValue
+        const rawValue = entity?.state
+        const value = rawValue && rawValue !== 'unavailable' && rawValue !== 'unknown'
+          ? parseFloat(rawValue).toFixed(1).replace(/\.0$/, '')
+          : s.mockValue
         const isInside = s.id === 'inside'
 
         // Outside tile: show weather icon based on condition entity
