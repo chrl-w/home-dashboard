@@ -125,3 +125,294 @@
   --pos-warning: #f0a030;
   --pos-danger:  #e85070;
 }
+
+/* ============================================================================
+   HOME AREA — extended tokens
+   These map the design-handoff token names onto the Personal OS plum ramp.
+   ============================================================================ */
+.pos-area-home {
+  --background:        #0d0c18;
+  --surface-card:      #151228;
+  --surface-secondary: #1e183c;
+  --surface-muted:     #2e2650;
+  --text-body:         #eeeaf8;
+  --text-muted:        #9878b8;
+  --border:            rgba(238,234,248,0.07);
+  --primary:           #8844cc;
+  --primary-foreground:#0d0c18;
+  --primary-grad-from: #8844cc;
+  --primary-grad-to:   #aa68e4;
+  --accent-glow:       rgba(136,68,204,0.22);
+  --ring:              rgba(136,68,204,0.38);
+  --shadow-sm:         0 1px 3px rgba(0,0,0,0.4);
+
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --font-display: "Fraunces", Georgia, serif;
+
+  --ease-pos: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ============================================================================
+   CARD — slim variant
+   ============================================================================ */
+.pos-card--slim {
+  padding: 8px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+}
+
+/* ============================================================================
+   SLIDER — thin drag-to-set track (blinds)
+   ============================================================================ */
+.pos-slider {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  touch-action: none;
+  cursor: ew-resize;
+}
+.pos-slider__track {
+  position: relative;
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--surface-muted);
+}
+.pos-slider__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--radius-full);
+  background: var(--text-muted);
+}
+.pos-slider__thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  height: 13px;
+  border-radius: var(--radius-full);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.pos-slider--accent .pos-slider__fill { background: var(--primary); }
+
+/* ============================================================================
+   DIMMER — full-width "slider as a list row" (lights)
+   ============================================================================ */
+.pos-dimmer {
+  position: relative;
+  height: 42px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border);
+  touch-action: none;
+  cursor: ew-resize;
+  user-select: none;
+}
+.pos-dimmer__fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--primary) 34%, transparent),
+    color-mix(in srgb, var(--primary) 16%, transparent));
+  transition: width 0.04s linear;
+  pointer-events: none;
+}
+.pos-dimmer__body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  pointer-events: none;
+}
+.pos-dimmer__icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.pos-dimmer__name {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-body);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pos-dimmer__val {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.pos-dimmer__toggle {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  background: rgba(0,0,0,0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex: none;
+  pointer-events: all;
+  transition: opacity 0.15s;
+}
+.pos-dimmer__toggle:hover { opacity: 0.8; }
+.pos-dimmer__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+  background: var(--primary-grad-to);
+}
+
+/* ============================================================================
+   DASHBOARD layout utilities
+   ============================================================================ */
+.pos-scroll-row {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  gap: 10px;
+}
+.pos-scroll-row::-webkit-scrollbar { display: none; }
+
+.pos-eyebrow--muted {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.pos-room-card {
+  border-radius: var(--radius-xl);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.2s var(--ease-pos);
+  position: relative;
+}
+.pos-room-card--on {
+  border-color: color-mix(in srgb, var(--primary) 32%, transparent);
+}
+.pos-room-card__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--radius-xl);
+  background: radial-gradient(circle at top left, var(--accent-glow), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-pos);
+}
+
+.pos-icon-tile {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  transition: background 0.2s;
+}
+.pos-icon-tile--on {
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.pos-scene-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s var(--ease-pos);
+  background: var(--surface-secondary);
+  color: var(--text-muted);
+}
+.pos-scene-chip:hover {
+  opacity: 0.85;
+  transform: scale(1.01);
+}
+.pos-scene-chip:active { transform: scale(0.97); }
+.pos-scene-chip--active {
+  background: var(--primary);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+.pos-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s var(--ease-pos);
+  flex: none;
+}
+.pos-quick-btn:hover { opacity: 0.9; transform: scale(1.01); }
+.pos-quick-btn:active { transform: scale(0.97); }
+.pos-quick-btn--secondary {
+  background: var(--surface-secondary);
+  color: var(--text-body);
+}
+.pos-quick-btn--primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--primary) 38%, transparent);
+}
+
+.pos-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--surface-secondary);
+  border: 2px solid var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex: none;
+}
+.pos-avatar-stack {
+  display: flex;
+}
+.pos-avatar-stack .pos-avatar + .pos-avatar { margin-left: -8px; }
