@@ -97,7 +97,6 @@ function Dashboard() {
         </div>
       )}
 
-      <StatusBar />
       <Header lightsOnCount={totalOn} membersHome={2} />
       <SensorTiles />
       <QuickActions roomStates={lightStates} onRoomStatesChange={handleRoomStatesChange} />

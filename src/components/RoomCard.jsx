@@ -121,8 +121,8 @@ export function RoomCard({ room, lightStates, blindStates, expanded, onToggleExp
           <RoomIcon
             size={21}
             strokeWidth={1.75}
-            color={anyOn ? 'var(--primary-grad-to)' : 'var(--text-muted)'}
-            style={{ opacity: anyOn ? 1 : 0.4 }}
+            color={anyOn ? 'var(--primary-grad-to)' : 'var(--text-body)'}
+            style={{ opacity: anyOn ? 1 : 0.6 }}
           />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
