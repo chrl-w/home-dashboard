@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { connect, getSavedCredentials, saveCredentials, clearCredentials, subscribeEntities } from './client.js'
+import { connectWithOAuth, getSavedUrl, saveUrl, clearAuth, subscribeEntities } from './client.js'
 
 const HAContext = createContext(null)
 
@@ -8,37 +8,49 @@ export function useHA() {
 }
 
 export function HAProvider({ children }) {
-  const [status, setStatus] = useState('idle') // idle | connecting | connected | error
+  const [status, setStatus] = useState('idle')
   const [entities, setEntities] = useState({})
-  const [error, setError] = useState(null)
   const connRef = useRef(null)
   const unsubRef = useRef(null)
 
-  const { url: savedUrl, token: savedToken } = getSavedCredentials()
-  const [url, setUrl] = useState(savedUrl)
-  const [token, setToken] = useState(savedToken)
-  const [showSetup, setShowSetup] = useState(!savedUrl || !savedToken)
+  const savedUrl = getSavedUrl()
+  const hasOAuthCallback = window.location.search.includes('code=')
 
-  async function doConnect(haUrl, haToken, fromSetup = false) {
+  // Show URL input if no saved URL and this isn't an OAuth callback
+  const [showUrlInput, setShowUrlInput] = useState(!savedUrl && !hasOAuthCallback)
+  const [inputUrl, setInputUrl] = useState(savedUrl)
+  const [error, setError] = useState(null)
+
+  async function doConnect(url) {
     setStatus('connecting')
     setError(null)
     try {
-      saveCredentials(haUrl, haToken)
-      const conn = await connect(haUrl, haToken)
+      saveUrl(url)
+      // getAuth() will redirect to HA if no tokens exist — page navigation,
+      // so code after this only runs on successful auth (stored or post-redirect)
+      const conn = await connectWithOAuth(url)
       connRef.current = conn
       unsubRef.current = subscribeEntities(conn, es => setEntities({ ...es }))
       setStatus('connected')
-      setShowSetup(false)
+      setShowUrlInput(false)
     } catch (e) {
       setStatus('error')
-      setError(e?.message || 'Connection failed')
-      if (!fromSetup) setShowSetup(true)
+      // ERR_INVALID_AUTH means tokens expired/revoked — clear and re-prompt
+      const msg = e?.message || String(e)
+      if (msg.includes('ERR_INVALID_AUTH') || msg.includes('invalid_grant')) {
+        clearAuth()
+        setError('Session expired — please sign in again.')
+      } else {
+        setError('Could not connect. Check the URL and try again.')
+      }
+      setShowUrlInput(true)
     }
   }
 
   useEffect(() => {
-    if (savedUrl && savedToken) {
-      doConnect(savedUrl, savedToken, false)
+    const url = getSavedUrl()
+    if (url || hasOAuthCallback) {
+      doConnect(url || inputUrl)
     }
     return () => {
       unsubRef.current?.()
@@ -57,35 +69,56 @@ export function HAProvider({ children }) {
     }).catch(() => {})
   }
 
-  function disconnect() {
+  function signOut() {
     unsubRef.current?.()
     connRef.current?.close()
     connRef.current = null
-    clearCredentials()
+    clearAuth()
     setStatus('idle')
     setEntities({})
-    setShowSetup(true)
-    setUrl('')
-    setToken('')
+    setInputUrl('')
+    setShowUrlInput(true)
   }
 
-  const value = { status, entities, callService, disconnect }
+  const value = { status, entities, callService, signOut }
 
-  return (
-    <HAContext.Provider value={value}>
-      {showSetup ? (
-        <SetupScreen
-          url={url} token={token}
-          setUrl={setUrl} setToken={setToken}
-          onConnect={() => doConnect(url, token, true)}
-          status={status} error={error}
+  if (showUrlInput) {
+    return (
+      <HAContext.Provider value={value}>
+        <UrlInputScreen
+          url={inputUrl}
+          setUrl={setInputUrl}
+          onSubmit={() => doConnect(inputUrl)}
+          status={status}
+          error={error}
         />
-      ) : children}
-    </HAContext.Provider>
-  )
+      </HAContext.Provider>
+    )
+  }
+
+  if (status === 'connecting') {
+    return (
+      <HAContext.Provider value={value}>
+        <div style={{
+          minHeight: '100dvh',
+          background: 'var(--background)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'var(--font-sans)',
+          fontSize: 13,
+          color: 'var(--text-muted)',
+        }}>
+          Connecting…
+        </div>
+      </HAContext.Provider>
+    )
+  }
+
+  return <HAContext.Provider value={value}>{children}</HAContext.Provider>
 }
 
-function SetupScreen({ url, token, setUrl, setToken, onConnect, status, error }) {
+function UrlInputScreen({ url, setUrl, onSubmit, status, error }) {
   const connecting = status === 'connecting'
   return (
     <div style={{
@@ -99,56 +132,72 @@ function SetupScreen({ url, token, setUrl, setToken, onConnect, status, error })
       fontFamily: 'var(--font-sans)',
     }}>
       <div style={{ width: '100%', maxWidth: 360 }}>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text-muted)', marginBottom: 12 }}>
-          Home Dashboard
-        </p>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, color: 'var(--text-body)', marginBottom: 8, lineHeight: 1.2 }}>
-          Connect to Home Assistant
-        </h1>
-        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 32, lineHeight: 1.6 }}>
-          Enter your Home Assistant URL and a long-lived access token to get started.
+        <p style={eyebrowStyle}>Home Dashboard</p>
+        <h1 style={headingStyle}>Sign in with Home Assistant</h1>
+        <p style={bodyStyle}>
+          Enter your Home Assistant URL. You'll be taken to your HA login page to sign in.
         </p>
 
         <label style={labelStyle}>HA URL</label>
         <input
           style={inputStyle}
           type="url"
-          placeholder="http://homeassistant.local:8123"
+          placeholder="https://your.ha.instance"
           value={url}
           onChange={e => setUrl(e.target.value)}
           disabled={connecting}
-        />
-
-        <label style={{ ...labelStyle, marginTop: 16 }}>Access token</label>
-        <input
-          style={inputStyle}
-          type="password"
-          placeholder="Long-lived access token"
-          value={token}
-          onChange={e => setToken(e.target.value)}
-          disabled={connecting}
-          onKeyDown={e => e.key === 'Enter' && onConnect()}
+          onKeyDown={e => e.key === 'Enter' && onSubmit()}
+          autoFocus
         />
 
         {error && (
-          <p style={{ fontSize: 12, color: 'var(--pos-danger)', marginTop: 12 }}>{error}</p>
+          <p style={{ fontSize: 12, color: 'var(--pos-danger)', marginTop: 12, marginBottom: 0 }}>{error}</p>
         )}
 
         <button
           style={{
             ...btnStyle,
             marginTop: 24,
-            opacity: connecting || !url || !token ? 0.5 : 1,
-            cursor: connecting || !url || !token ? 'not-allowed' : 'pointer',
+            opacity: connecting || !url ? 0.5 : 1,
+            cursor: connecting || !url ? 'not-allowed' : 'pointer',
           }}
-          onClick={onConnect}
-          disabled={connecting || !url || !token}
+          onClick={onSubmit}
+          disabled={connecting || !url}
         >
-          {connecting ? 'Connecting…' : 'Connect'}
+          {connecting ? 'Connecting…' : 'Continue →'}
         </button>
       </div>
     </div>
   )
+}
+
+const eyebrowStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: 11,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.12em',
+  color: 'var(--text-muted)',
+  marginBottom: 12,
+  marginTop: 0,
+}
+
+const headingStyle = {
+  fontFamily: 'var(--font-display)',
+  fontSize: 28,
+  fontWeight: 600,
+  color: 'var(--text-body)',
+  marginBottom: 8,
+  marginTop: 0,
+  lineHeight: 1.2,
+}
+
+const bodyStyle = {
+  fontSize: 13,
+  color: 'var(--text-muted)',
+  marginBottom: 32,
+  marginTop: 0,
+  lineHeight: 1.6,
 }
 
 const labelStyle = {
