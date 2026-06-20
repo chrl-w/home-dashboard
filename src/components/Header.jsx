@@ -1,7 +1,26 @@
-export function Header({ lightsOnCount, membersHome }) {
-  const summary = lightsOnCount === 0
-    ? `All lights off · ${membersHome} home`
-    : `${lightsOnCount} light${lightsOnCount !== 1 ? 's' : ''} on · ${membersHome} home`
+import { useHA } from '../ha/HAProvider.jsx'
+import { PERSONS } from '../data/rooms.js'
+
+export function Header({ lightsOnCount }) {
+  const { entities, currentUser } = useHA() || {}
+
+  const persons = PERSONS.map(p => {
+    const entity = entities?.[p.id]
+    const isHome = entity?.state === 'home'
+    const name = entity?.attributes?.friendly_name || p.initials
+    const initial = name.charAt(0).toUpperCase()
+    return { ...p, isHome, initial, name }
+  })
+
+  const homeCount = persons.filter(p => p.isHome).length
+  const lightsLabel = lightsOnCount === 0
+    ? 'All lights off'
+    : `${lightsOnCount} light${lightsOnCount !== 1 ? 's' : ''} on`
+  const summary = homeCount > 0
+    ? `${lightsLabel} · ${homeCount} home`
+    : lightsLabel
+
+  const displayName = currentUser?.name?.split(' ')[0] || 'Home'
 
   return (
     <div style={{
@@ -12,8 +31,16 @@ export function Header({ lightsOnCount, membersHome }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div className="pos-avatar-stack">
-          <div className="pos-avatar">A</div>
-          <div className="pos-avatar">S</div>
+          {persons.map(p => (
+            <div
+              key={p.id}
+              className="pos-avatar"
+              title={`${p.name} — ${p.isHome ? 'home' : 'away'}`}
+              style={{ opacity: p.isHome ? 1 : 0.35 }}
+            >
+              {p.initial}
+            </div>
+          ))}
         </div>
         <div>
           <div style={{
@@ -23,7 +50,7 @@ export function Header({ lightsOnCount, membersHome }) {
             color: 'var(--text-body)',
             lineHeight: 1.2,
           }}>
-            Home
+            {displayName}
           </div>
           <div style={{
             fontFamily: 'var(--font-sans)',

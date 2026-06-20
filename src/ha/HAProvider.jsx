@@ -10,6 +10,7 @@ export function useHA() {
 export function HAProvider({ children }) {
   const [status, setStatus] = useState('idle')
   const [entities, setEntities] = useState({})
+  const [currentUser, setCurrentUser] = useState(null)
   const connRef = useRef(null)
   const unsubRef = useRef(null)
 
@@ -31,6 +32,7 @@ export function HAProvider({ children }) {
       const conn = await connectWithOAuth(url)
       connRef.current = conn
       unsubRef.current = subscribeEntities(conn, es => setEntities({ ...es }))
+      conn.sendMessagePromise({ type: 'auth/current_user' }).then(setCurrentUser).catch(() => {})
       setStatus('connected')
       setShowUrlInput(false)
     } catch (e) {
@@ -80,7 +82,7 @@ export function HAProvider({ children }) {
     setShowUrlInput(true)
   }
 
-  const value = { status, entities, callService, signOut }
+  const value = { status, entities, currentUser, callService, signOut }
 
   if (showUrlInput) {
     return (
