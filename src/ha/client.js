@@ -25,8 +25,7 @@ export function clearCredentials() {
 }
 
 export async function connect(url, token) {
-  const wsUrl = url.replace(/^http/, 'ws')
-  const auth = createLongLivedTokenAuth(wsUrl, token)
+  const auth = createLongLivedTokenAuth(url, token)
   const conn = await createConnection({ auth })
   return conn
 }
