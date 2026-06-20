@@ -7,7 +7,7 @@ export const ROOMS = [
     lights: [
       { id: 'living_floor',   name: 'Floor lamp',   icon: 'LampFloor',   entityId: null },
       { id: 'living_sofa',    name: 'Sofa lamp',    icon: 'LampDesk',    entityId: null },
-      { id: 'living_ceiling', name: 'Ceiling',      icon: 'LampCeiling', entityId: null },
+      { id: 'living_ceiling', name: 'Ceiling',      icon: 'LampCeiling', entityId: 'light.living_room_ceiling' },
     ],
     scenes: [
       { id: 'off',    name: 'Off',    icon: 'Power', states: {} },
