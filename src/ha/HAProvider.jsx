@@ -19,7 +19,7 @@ export function HAProvider({ children }) {
   const [token, setToken] = useState(savedToken)
   const [showSetup, setShowSetup] = useState(!savedUrl || !savedToken)
 
-  async function doConnect(haUrl, haToken) {
+  async function doConnect(haUrl, haToken, fromSetup = false) {
     setStatus('connecting')
     setError(null)
     try {
@@ -32,12 +32,13 @@ export function HAProvider({ children }) {
     } catch (e) {
       setStatus('error')
       setError(e?.message || 'Connection failed')
+      if (!fromSetup) setShowSetup(true)
     }
   }
 
   useEffect(() => {
     if (savedUrl && savedToken) {
-      doConnect(savedUrl, savedToken)
+      doConnect(savedUrl, savedToken, false)
     }
     return () => {
       unsubRef.current?.()
@@ -76,7 +77,7 @@ export function HAProvider({ children }) {
         <SetupScreen
           url={url} token={token}
           setUrl={setUrl} setToken={setToken}
-          onConnect={() => doConnect(url, token)}
+          onConnect={() => doConnect(url, token, true)}
           status={status} error={error}
         />
       ) : children}
