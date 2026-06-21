@@ -105,7 +105,7 @@ export function BlindsModal({ blindStates, onBlindChange, onClose }) {
               <>
                 <span style={{ color: 'var(--border)', fontSize: 12 }}>·</span>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--text-muted)' }}>
-                  Last closed by {reason.toLowerCase()}
+                  Last change reason: {reason.toLowerCase()}
                 </span>
               </>
             )}
@@ -140,7 +140,7 @@ export function BlindsModal({ blindStates, onBlindChange, onClose }) {
               <div key={side}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                   <span style={miniLabelStyle}>{side === 'left' ? '← Left' : 'Right →'}</span>
-                  <span style={{ ...miniLabelStyle, color: 'var(--primary-grad-to)' }}>{pos}%</span>
+                  <span style={{ ...miniLabelStyle, color: 'var(--primary-grad-to)' }}>{pos}% · {posLabel(pos)}</span>
                 </div>
                 <MiniSlider value={pos} onChange={v => setBlind(side, v)} />
               </div>
@@ -177,6 +177,7 @@ function BlindGraphic({ position, onChange }) {
         position: 'relative', height: 210, borderRadius: 16,
         overflow: 'hidden', cursor: 'ns-resize',
         border: '1px solid var(--border)', userSelect: 'none',
+        touchAction: 'none',
       }}
     >
       {/* Slat area */}
@@ -356,7 +357,7 @@ function MiniSlider({ value, onChange }) {
       onPointerDown={e => { e.preventDefault(); dragging.current = true; ref.current.setPointerCapture(e.pointerId); onChange(getVal(e.clientX)) }}
       onPointerMove={e => { if (dragging.current) onChange(getVal(e.clientX)) }}
       onPointerUp={() => { dragging.current = false }}
-      style={{ height: 28, display: 'flex', alignItems: 'center', cursor: 'ew-resize' }}
+      style={{ height: 28, display: 'flex', alignItems: 'center', cursor: 'ew-resize', touchAction: 'none' }}
     >
       <div style={{ position: 'relative', flex: 1, height: 4, borderRadius: 2, background: 'var(--surface-secondary)', border: '1px solid var(--border)' }}>
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${value}%`, background: 'var(--primary)', borderRadius: 2 }} />
