@@ -1,5 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { connectWithOAuth, getSavedUrl, saveUrl, clearAuth, subscribeEntities } from './client.js'
+import { MOCK_ENTITIES, MOCK_USER } from './mockEntities.js'
+
+const IS_MOCK = import.meta.env.VITE_MOCK === 'true'
 
 const HAContext = createContext(null)
 
@@ -7,7 +10,15 @@ export function useHA() {
   return useContext(HAContext)
 }
 
+function MockProvider({ children }) {
+  function callService() { return Promise.resolve() }
+  function signOut() {}
+  const value = { status: 'connected', entities: MOCK_ENTITIES, currentUser: MOCK_USER, callService, signOut }
+  return <HAContext.Provider value={value}>{children}</HAContext.Provider>
+}
+
 export function HAProvider({ children }) {
+  if (IS_MOCK) return <MockProvider>{children}</MockProvider>
   const [status, setStatus] = useState('idle')
   const [entities, setEntities] = useState({})
   const [currentUser, setCurrentUser] = useState(null)

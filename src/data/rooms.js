@@ -91,9 +91,9 @@ export const QUICK_ACTIONS = {
 }
 
 export const SENSORS = [
-  { id: 'inside',   label: 'Inside',   icon: 'Thermometer', unit: '°', entityId: 'sensor.heating_temperature', mockValue: '21.5' },
-  { id: 'outside',  label: 'Outside',  icon: 'Cloud',       unit: '°', entityId: 'sensor.house_chopsy_outdoor_temperature', weatherEntityId: 'sensor.house_chopsy_weather_condition', mockValue: '13' },
-  { id: 'humidity', label: 'Humidity', icon: 'Droplet',     unit: '%', entityId: null, mockValue: '48' },
+  { id: 'living',  roomIcon: 'Sofa', unit: '°', entityId: 'sensor.heating_temperature',               mockValue: '21.5' },
+  { id: 'bedroom', roomIcon: 'Bed',  unit: '°', entityId: 'sensor.bedroom_temperature',                mockValue: '19.5' },
+  { id: 'outside', roomIcon: null,   unit: '°', entityId: 'sensor.house_chopsy_outdoor_temperature',   weatherEntityId: 'sensor.house_chopsy_weather_condition', mockValue: '14.2' },
 ]
 
 export const PERSONS = [

@@ -1,7 +1,7 @@
-import { Sun, Moon, Cloud, CloudSun, CloudMoon, CloudRain, CloudRainWind, CloudSnow, CloudFog, CloudLightning, CloudHail, Wind, Thermometer, Droplet } from 'lucide-react'
+import { Sun, Moon, Cloud, CloudSun, CloudMoon, CloudRain, CloudRainWind, CloudSnow, CloudFog, CloudLightning, CloudHail, Wind } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import { useHA } from '../ha/HAProvider.jsx'
-import { SENSORS } from '../data/rooms.js'
+import { SENSORS, PERSONS } from '../data/rooms.js'
 
 const WEATHER_ICONS = {
   'sunny':               { Icon: Sun,            color: '#F0A030' },
@@ -26,8 +26,64 @@ const WEATHER_ICONS = {
 export function SensorTiles() {
   const { entities } = useHA() || { entities: {} }
 
+  const persons = PERSONS.map(p => {
+    const entity = entities?.[p.id]
+    const isHome = entity?.state === 'home'
+    const name = entity?.attributes?.friendly_name || p.initials
+    const initial = name.charAt(0).toUpperCase()
+    return { ...p, isHome, initial, name }
+  })
+
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '12px 20px 4px' }}>
+    <div style={{
+      display: 'flex',
+      gap: 8,
+      padding: '14px 20px 4px',
+      overflowX: 'auto',
+      scrollbarWidth: 'none',
+      WebkitOverflowScrolling: 'touch',
+    }}>
+
+      {/* Person avatar stack */}
+      <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+        {persons.map((p, i) => (
+          <div
+            key={p.id}
+            title={`${p.name} — ${p.isHome ? 'home' : 'away'}`}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 9999,
+              background: 'var(--primary)',
+              border: '2px solid var(--background)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 12,
+              fontWeight: 700,
+              fontFamily: 'var(--font-sans)',
+              color: '#fff',
+              opacity: p.isHome ? 1 : 0.35,
+              marginLeft: i === 0 ? 0 : -8,
+              zIndex: persons.length - i,
+              position: 'relative',
+            }}
+          >
+            {p.initial}
+          </div>
+        ))}
+      </div>
+
+      {/* Divider */}
+      <div style={{
+        width: 1,
+        height: 28,
+        background: 'var(--border)',
+        alignSelf: 'center',
+        flexShrink: 0,
+      }} />
+
+      {/* Sensor chips */}
       {SENSORS.map(s => {
         const entity = s.entityId ? entities[s.entityId] : null
         const rawValue = entity?.state
@@ -43,14 +99,13 @@ export function SensorTiles() {
           IconComponent = weather.Icon
           iconColor = weather.color
         } else {
-          IconComponent = Icons[s.icon] || Thermometer
-          iconColor = s.id === 'inside' ? 'var(--primary-grad-to)' : 'var(--text-muted)'
+          IconComponent = Icons[s.roomIcon] || Icons.Thermometer
+          iconColor = 'var(--primary-grad-to)'
         }
 
         return (
           <div key={s.id} style={chipStyle}>
             <IconComponent size={14} strokeWidth={2} color={iconColor} />
-            <span style={labelStyle}>{s.label}</span>
             <span style={valueStyle}>{value}{s.unit}</span>
           </div>
         )
@@ -67,13 +122,7 @@ const chipStyle = {
   borderRadius: 9999,
   background: 'var(--surface-card)',
   border: '1px solid var(--border)',
-}
-
-const labelStyle = {
-  fontFamily: 'var(--font-sans)',
-  fontSize: 11,
-  fontWeight: 500,
-  color: 'var(--text-muted)',
+  flex: 'none',
 }
 
 const valueStyle = {
