@@ -6,6 +6,7 @@ import { SensorTiles } from './components/SensorTiles.jsx'
 import { BottomToolbar } from './components/BottomToolbar.jsx'
 import { BlindsModal } from './components/BlindsModal.jsx'
 import { SettingsModal } from './components/SettingsModal.jsx'
+import { WeatherModal } from './components/WeatherModal.jsx'
 import { RoomCard } from './components/RoomCard.jsx'
 import { ROOMS } from './data/rooms.js'
 import { useSceneSettings } from './hooks/useSceneSettings.js'
@@ -38,6 +39,7 @@ function Dashboard() {
   const [expanded, setExpanded] = useState(new Set())
   const [showBlindsModal, setShowBlindsModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showWeather, setShowWeather] = useState(false)
   const { settings, updateLight, resetRoom, effectiveRooms } = useSceneSettings({ entities, callService })
 
   useEffect(() => {
@@ -172,7 +174,7 @@ function Dashboard() {
       )}
 
       <Header lightsOnCount={totalOn} />
-      <SensorTiles />
+      <SensorTiles onWeatherOpen={() => setShowWeather(true)} />
 
       {/* Rooms section */}
       <div>
@@ -209,6 +211,10 @@ function Dashboard() {
           onBlindChange={handleBlindChange}
           onClose={() => setShowBlindsModal(false)}
         />
+      )}
+
+      {showWeather && (
+        <WeatherModal onClose={() => setShowWeather(false)} />
       )}
 
       {showSettings && (
