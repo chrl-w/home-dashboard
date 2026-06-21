@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { X, Moon, Lightbulb, RotateCcw } from 'lucide-react'
 import { ROOMS } from '../data/rooms.js'
 
@@ -7,8 +7,16 @@ const SCENE_META = {
   bright: { label: 'Bright', Icon: Lightbulb },
 }
 
+const PRESETS = [0, 10, 20, 40, 60, 80, 100]
+
 export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose }) {
   const overlayRef = useRef(null)
+  const [activeRoomId, setActiveRoomId] = useState(ROOMS[0].id)
+  const [activeScene, setActiveScene] = useState('relax')
+
+  const activeRoom = ROOMS.find(r => r.id === activeRoomId)
+  const scene = activeRoom.scenes.find(s => s.id === activeScene)
+  const sceneStates = settings[activeRoomId]?.[activeScene] ?? scene?.states ?? {}
 
   return (
     <div
@@ -36,13 +44,13 @@ export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose })
         </div>
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '8px 20px 16px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '8px 20px 12px', flexShrink: 0 }}>
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--text-body)' }}>
               Scene settings
             </div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginTop: 3 }}>
-              Relax &amp; Bright · per room
+              {activeRoom.name} · {SCENE_META[activeScene].label}
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 6, display: 'flex' }}>
@@ -50,136 +58,118 @@ export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose })
           </button>
         </div>
 
-        {/* Scrollable content */}
-        <div style={{ overflowY: 'auto', flex: 1, padding: '0 20px 8px' }}>
+        {/* Room tabs */}
+        <div style={{ display: 'flex', gap: 6, padding: '0 20px 12px', flexShrink: 0, overflowX: 'auto' }}>
           {ROOMS.map(room => (
-            <RoomSection
+            <button
               key={room.id}
-              room={room}
-              settings={settings[room.id] ?? {}}
-              onUpdateLight={(sceneId, lightId, patch) => onUpdateLight(room.id, sceneId, lightId, patch)}
-              onReset={() => onResetRoom(room.id)}
-            />
+              onClick={() => setActiveRoomId(room.id)}
+              style={{
+                flexShrink: 0,
+                padding: '6px 14px',
+                borderRadius: 999,
+                border: '1px solid',
+                borderColor: activeRoomId === room.id ? 'var(--primary)' : 'var(--border)',
+                background: activeRoomId === room.id ? 'color-mix(in srgb, var(--primary) 15%, transparent)' : 'transparent',
+                color: activeRoomId === room.id ? 'var(--primary-grad-to)' : 'var(--text-muted)',
+                fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 150ms',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              {room.name}
+            </button>
           ))}
         </div>
-      </div>
-    </div>
-  )
-}
 
-function RoomSection({ room, settings, onUpdateLight, onReset }) {
-  return (
-    <div style={{ marginBottom: 28 }}>
-      {/* Room header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, marginBottom: 12, borderBottom: '1px solid var(--border)' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
-          {room.name}
-        </span>
-        <button
-          onClick={onReset}
-          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 4 }}
-          title="Reset to defaults"
-        >
-          <RotateCcw size={12} />
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500 }}>Reset</span>
-        </button>
-      </div>
-
-      {/* Scene cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {['relax', 'bright'].map(sceneId => {
-          const scene = room.scenes.find(s => s.id === sceneId)
-          if (!scene) return null
-          const sceneStates = settings[sceneId] ?? scene.states
-          return (
-            <SceneCard
-              key={sceneId}
-              sceneId={sceneId}
-              room={room}
-              sceneStates={sceneStates}
-              onUpdateLight={(lightId, patch) => onUpdateLight(sceneId, lightId, patch)}
-            />
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function SceneCard({ sceneId, room, sceneStates, onUpdateLight }) {
-  const { label, Icon } = SCENE_META[sceneId]
-  const onCount = room.lights.filter(l => sceneStates[l.id]?.on).length
-
-  return (
-    <div style={{
-      background: 'var(--surface-secondary)',
-      borderRadius: 16, padding: '14px 16px',
-      border: '1px solid var(--border)',
-    }}>
-      {/* Scene header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <Icon size={14} color="var(--primary-grad-to)" />
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 700, color: 'var(--text-body)' }}>
-            {label}
-          </span>
+        {/* Scene tabs */}
+        <div style={{ display: 'flex', gap: 0, margin: '0 20px 16px', flexShrink: 0, background: 'var(--surface-secondary)', borderRadius: 12, padding: 3, border: '1px solid var(--border)' }}>
+          {['relax', 'bright'].map(sceneId => {
+            const { label, Icon } = SCENE_META[sceneId]
+            const isActive = activeScene === sceneId
+            return (
+              <button
+                key={sceneId}
+                onClick={() => setActiveScene(sceneId)}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  padding: '8px 0',
+                  borderRadius: 9,
+                  border: 'none',
+                  background: isActive ? 'var(--surface-card)' : 'transparent',
+                  color: isActive ? 'var(--text-body)' : 'var(--text-muted)',
+                  fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: isActive ? 700 : 500,
+                  cursor: 'pointer',
+                  boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+                  transition: 'all 150ms',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                <Icon size={13} color={isActive ? 'var(--primary-grad-to)' : 'currentColor'} />
+                {label}
+              </button>
+            )
+          })}
         </div>
-        {/* At-a-glance summary */}
-        <GlanceSummary room={room} sceneStates={sceneStates} onCount={onCount} />
-      </div>
 
-      {/* Light rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {room.lights.map(light => {
-          const s = sceneStates[light.id] ?? { on: false, b: 100 }
-          return (
-            <LightRow
-              key={light.id}
-              light={light}
-              on={s.on}
-              brightness={s.b}
-              onToggle={() => onUpdateLight(light.id, { on: !s.on })}
-              onBrightness={val => onUpdateLight(light.id, { b: val })}
-            />
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+        {/* Light list */}
+        <div style={{ overflowY: 'auto', flex: 1, padding: '0 20px 8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {activeRoom.lights.map(light => {
+              const s = sceneStates[light.id] ?? { on: false, b: 100 }
+              return (
+                <LightRow
+                  key={light.id}
+                  light={light}
+                  on={s.on}
+                  brightness={s.b}
+                  onToggle={() => onUpdateLight(activeRoomId, activeScene, light.id, { on: !s.on })}
+                  onBrightness={val => onUpdateLight(activeRoomId, activeScene, light.id, { b: val })}
+                />
+              )
+            })}
+          </div>
 
-function GlanceSummary({ room, sceneStates, onCount }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{ display: 'flex', gap: 3 }}>
-        {room.lights.map(light => {
-          const s = sceneStates[light.id] ?? { on: false, b: 100 }
-          return (
-            <div
-              key={light.id}
-              title={`${light.name}: ${s.on ? `${s.b}%` : 'off'}`}
-              style={{
-                width: 8, height: 8, borderRadius: 9999,
-                background: s.on
-                  ? `color-mix(in srgb, var(--primary-grad-to) ${s.b}%, color-mix(in srgb, var(--primary-grad-to) 20%, transparent))`
-                  : 'var(--border)',
-                transition: 'background 200ms',
-              }}
-            />
-          )
-        })}
+          {/* Reset */}
+          <button
+            onClick={() => onResetRoom(activeRoomId)}
+            style={{
+              marginTop: 20, display: 'flex', alignItems: 'center', gap: 6,
+              background: 'none', border: 'none', color: 'var(--text-muted)',
+              cursor: 'pointer', padding: '6px 0',
+              fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 500,
+            }}
+          >
+            <RotateCcw size={12} />
+            Reset {activeRoom.name} to defaults
+          </button>
+        </div>
       </div>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>
-        {onCount}/{room.lights.length}
-      </span>
     </div>
   )
 }
 
 function LightRow({ light, on, brightness, onToggle, onBrightness }) {
+  const isCustom = !PRESETS.includes(brightness)
+  const [customMode, setCustomMode] = useState(isCustom)
+  const [customVal, setCustomVal] = useState(String(brightness))
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (customMode && inputRef.current) inputRef.current.focus()
+  }, [customMode])
+
+  function handleCustomConfirm() {
+    const n = Math.max(0, Math.min(100, parseInt(customVal, 10) || 0))
+    onBrightness(n)
+    setCustomVal(String(n))
+    if (PRESETS.includes(n)) setCustomMode(false)
+  }
+
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div style={{ padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
         <Toggle on={on} onChange={onToggle} />
         <span style={{
           flex: 1,
@@ -198,11 +188,70 @@ function LightRow({ light, on, brightness, onToggle, onBrightness }) {
           {on ? `${brightness}%` : 'off'}
         </span>
       </div>
-      {on && (
-        <div style={{ paddingLeft: 46, paddingTop: 8 }}>
-          <SceneSlider value={brightness} onChange={onBrightness} />
-        </div>
-      )}
+
+      <div style={{ paddingLeft: 46, opacity: on ? 1 : 0.3, transition: 'opacity 200ms', pointerEvents: on ? 'auto' : 'none', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        {PRESETS.map(p => (
+          <button
+            key={p}
+            onClick={() => { onBrightness(p); setCustomMode(false) }}
+            style={{
+              padding: '4px 7px',
+              borderRadius: 6,
+              border: '1px solid',
+              borderColor: (!customMode && brightness === p) ? 'var(--primary)' : 'var(--border)',
+              background: (!customMode && brightness === p) ? 'color-mix(in srgb, var(--primary) 18%, transparent)' : 'transparent',
+              color: (!customMode && brightness === p) ? 'var(--primary-grad-to)' : 'var(--text-muted)',
+              fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 120ms',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            {p}%
+          </button>
+        ))}
+
+        {customMode ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <input
+              ref={inputRef}
+              type="number"
+              min={0} max={100}
+              value={customVal}
+              onChange={e => setCustomVal(e.target.value)}
+              onBlur={handleCustomConfirm}
+              onKeyDown={e => e.key === 'Enter' && handleCustomConfirm()}
+              style={{
+                width: 48, padding: '4px 6px',
+                borderRadius: 6, border: '1px solid var(--primary)',
+                background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                color: 'var(--primary-grad-to)',
+                fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
+                outline: 'none',
+              }}
+            />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>%</span>
+          </div>
+        ) : (
+          <button
+            onClick={() => { setCustomVal(String(brightness)); setCustomMode(true) }}
+            style={{
+              padding: '4px 7px',
+              borderRadius: 6,
+              border: '1px solid',
+              borderColor: isCustom ? 'var(--primary)' : 'var(--border)',
+              background: isCustom ? 'color-mix(in srgb, var(--primary) 18%, transparent)' : 'transparent',
+              color: isCustom ? 'var(--primary-grad-to)' : 'var(--text-muted)',
+              fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 120ms',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            custom
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -229,36 +278,5 @@ function Toggle({ on, onChange }) {
         boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
       }} />
     </button>
-  )
-}
-
-function SceneSlider({ value, onChange }) {
-  const ref = useRef(null)
-  const dragging = useRef(false)
-
-  function getVal(clientX) {
-    const rect = ref.current.getBoundingClientRect()
-    return Math.round(Math.max(1, Math.min(100, ((clientX - rect.left) / rect.width) * 100)))
-  }
-
-  return (
-    <div
-      ref={ref}
-      onPointerDown={e => { e.preventDefault(); dragging.current = true; ref.current.setPointerCapture(e.pointerId); onChange(getVal(e.clientX)) }}
-      onPointerMove={e => { if (dragging.current) onChange(getVal(e.clientX)) }}
-      onPointerUp={() => { dragging.current = false }}
-      style={{ height: 24, display: 'flex', alignItems: 'center', cursor: 'ew-resize' }}
-    >
-      <div style={{ position: 'relative', flex: 1, height: 4, borderRadius: 2, background: 'var(--border)' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${value}%`, background: 'var(--primary)', borderRadius: 2 }} />
-        <div style={{
-          position: 'absolute', left: `${value}%`, top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 16, height: 16, borderRadius: 9999,
-          background: 'var(--primary)', border: '2.5px solid var(--background)',
-          boxShadow: '0 1px 4px color-mix(in srgb, var(--primary) 40%, transparent)',
-        }} />
-      </div>
-    </div>
   )
 }

@@ -54,7 +54,7 @@ export function SensorTiles() {
               width: 32,
               height: 32,
               borderRadius: 9999,
-              background: 'var(--primary)',
+              background: p.isHome ? 'var(--primary)' : 'var(--surface-secondary)',
               border: '2px solid var(--background)',
               display: 'flex',
               alignItems: 'center',
@@ -62,8 +62,7 @@ export function SensorTiles() {
               fontSize: 12,
               fontWeight: 700,
               fontFamily: 'var(--font-sans)',
-              color: '#fff',
-              opacity: p.isHome ? 1 : 0.35,
+              color: p.isHome ? '#fff' : 'var(--text-muted)',
               marginLeft: i === 0 ? 0 : -8,
               zIndex: persons.length - i,
               position: 'relative',
@@ -100,7 +99,7 @@ export function SensorTiles() {
           iconColor = weather.color
         } else {
           IconComponent = Icons[s.roomIcon] || Icons.Thermometer
-          iconColor = 'var(--primary-grad-to)'
+          iconColor = 'var(--text-muted)'
         }
 
         return (
