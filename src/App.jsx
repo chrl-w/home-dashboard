@@ -38,7 +38,7 @@ function Dashboard() {
   const [expanded, setExpanded] = useState(new Set())
   const [showBlindsModal, setShowBlindsModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const { settings, updateLight, resetRoom, effectiveRooms } = useSceneSettings()
+  const { settings, updateLight, resetRoom, effectiveRooms } = useSceneSettings({ entities, callService })
 
   useEffect(() => {
     if (!entities) return
