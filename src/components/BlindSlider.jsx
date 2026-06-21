@@ -43,6 +43,7 @@ export function BlindSlider({ label, value, onChange }) {
         className="pos-slider"
         ref={trackRef}
         role="slider"
+        style={{ touchAction: 'none' }}
         aria-label={label}
         aria-valuenow={value}
         aria-valuemin={0}
