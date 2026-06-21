@@ -1,4 +1,4 @@
-import { Sun, Moon, Cloud, CloudSun, CloudMoon, CloudRain, CloudRainWind, CloudSnow, CloudFog, CloudLightning, CloudHail, Wind } from 'lucide-react'
+import { Sun, Moon, Cloud, CloudSun, CloudMoon, CloudRain, CloudRainWind, CloudSnow, CloudFog, CloudLightning, CloudHail, Wind, Home as HomeIcon, MapPin } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import { useHA } from '../ha/HAProvider.jsx'
 import { SENSORS, PERSONS } from '../data/rooms.js'
@@ -28,7 +28,7 @@ export function SensorTiles() {
 
   const persons = PERSONS.map(p => {
     const entity = entities?.[p.id]
-    const isHome = entity?.state === 'home'
+    const isHome = entity?.state?.toLowerCase() === 'home'
     const name = entity?.attributes?.friendly_name || p.initials
     const initial = name.charAt(0).toUpperCase()
     return { ...p, isHome, initial, name }
@@ -51,6 +51,13 @@ export function SensorTiles() {
             key={p.id}
             title={`${p.name} — ${p.isHome ? 'home' : 'away'}`}
             style={{
+              position: 'relative',
+              marginLeft: i === 0 ? 0 : -8,
+              zIndex: persons.length - i,
+              flexShrink: 0,
+            }}
+          >
+            <div style={{
               width: 32,
               height: 32,
               borderRadius: 9999,
@@ -63,12 +70,27 @@ export function SensorTiles() {
               fontWeight: 700,
               fontFamily: 'var(--font-sans)',
               color: p.isHome ? '#fff' : 'var(--text-muted)',
-              marginLeft: i === 0 ? 0 : -8,
-              zIndex: persons.length - i,
-              position: 'relative',
-            }}
-          >
-            {p.initial}
+            }}>
+              {p.initial}
+            </div>
+            <div style={{
+              position: 'absolute',
+              bottom: -2,
+              right: -2,
+              width: 14,
+              height: 14,
+              borderRadius: 9999,
+              background: p.isHome ? '#22c55e' : 'var(--surface-secondary)',
+              border: '1.5px solid var(--background)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              {p.isHome
+                ? <HomeIcon size={7} strokeWidth={2.5} color="#fff" />
+                : <MapPin size={7} strokeWidth={2.5} color="var(--text-muted)" />
+              }
+            </div>
           </div>
         ))}
       </div>
@@ -84,28 +106,42 @@ export function SensorTiles() {
 
       {/* Sensor chips */}
       {SENSORS.map(s => {
-        const entity = s.entityId ? entities[s.entityId] : null
+        const entity = s.entityId ? entities?.[s.entityId] : null
         const rawValue = entity?.state
-        const value = rawValue && rawValue !== 'unavailable' && rawValue !== 'unknown'
-          ? parseFloat(rawValue).toFixed(1).replace(/\.0$/, '')
-          : s.mockValue
+        const isAvailable = rawValue != null && rawValue !== 'unavailable' && rawValue !== 'unknown'
+        const sourceVal = isAvailable ? rawValue : s.mockValue
 
-        let IconComponent, iconColor
+        let displayValue, IconComponent, iconColor
 
-        if (s.id === 'outside' && s.weatherEntityId) {
-          const condition = entities[s.weatherEntityId]?.state?.toLowerCase() || ''
+        if (s.type === 'boolean') {
+          const isOn = sourceVal === 'on'
+          displayValue = isOn ? 'On' : 'Off'
+          IconComponent = Icons[s.icon] || Icons[s.roomIcon] || Icons.Thermometer
+          iconColor = isOn ? '#f97316' : 'var(--text-muted)'
+        } else if (s.id === 'outside' && s.weatherEntityId) {
+          const condition = entities?.[s.weatherEntityId]?.state?.toLowerCase() || ''
           const weather = WEATHER_ICONS[condition] || { Icon: Cloud, color: 'var(--text-muted)' }
           IconComponent = weather.Icon
           iconColor = weather.color
-        } else {
-          IconComponent = Icons[s.roomIcon] || Icons.Thermometer
+          const num = parseFloat(sourceVal)
+          displayValue = (isNaN(num) ? '?' : Math.round(num)) + (s.unit || '')
+        } else if (s.prefix != null || s.decimals != null) {
+          IconComponent = Icons[s.icon] || Icons[s.roomIcon] || Icons.Thermometer
           iconColor = 'var(--text-muted)'
+          const num = parseFloat(sourceVal)
+          const str = isNaN(num) ? '—' : num.toFixed(s.decimals ?? 2)
+          displayValue = (s.prefix || '') + str + (s.unit || '')
+        } else {
+          IconComponent = Icons[s.icon] || Icons[s.roomIcon] || Icons.Thermometer
+          iconColor = 'var(--text-muted)'
+          const num = parseFloat(sourceVal)
+          displayValue = (isNaN(num) ? (sourceVal || '?') : Math.round(num)) + (s.unit || '')
         }
 
         return (
           <div key={s.id} style={chipStyle}>
             <IconComponent size={14} strokeWidth={2} color={iconColor} />
-            <span style={valueStyle}>{value}{s.unit}</span>
+            <span style={valueStyle}>{displayValue}</span>
           </div>
         )
       })}

@@ -91,9 +91,12 @@ export const QUICK_ACTIONS = {
 }
 
 export const SENSORS = [
-  { id: 'living',  roomIcon: 'Sofa', unit: '°', entityId: 'sensor.heating_temperature',               mockValue: '21.5' },
-  { id: 'bedroom', roomIcon: 'Bed',  unit: '°', entityId: 'sensor.bedroom_temperature',                mockValue: '19.5' },
-  { id: 'outside', roomIcon: null,   unit: '°', entityId: 'sensor.house_chopsy_outdoor_temperature',   weatherEntityId: 'sensor.house_chopsy_weather_condition', mockValue: '14.2' },
+  { id: 'living',      roomIcon: 'Sofa',      unit: '°', entityId: 'sensor.heating_temperature',               mockValue: '21.5' },
+  { id: 'bedroom',     roomIcon: 'Bed',       unit: '°', entityId: 'sensor.bedroom_temperature',                mockValue: '19.5' },
+  { id: 'outside',     roomIcon: null,        unit: '°', entityId: 'sensor.house_chopsy_outdoor_temperature',   weatherEntityId: 'sensor.house_chopsy_weather_condition', mockValue: '14.2' },
+  { id: 'electricity', icon: 'Zap',           prefix: '£', decimals: 2, entityId: 'sensor.octopus_energy_electricity_23j0105199_1200020622277_previous_accumulative_cost', mockValue: '2.34' },
+  { id: 'gas',         icon: 'Flame',         prefix: '£', decimals: 2, entityId: 'sensor.octopus_energy_gas_previous_accumulative_cost', mockValue: '1.85' },
+  { id: 'heating',     icon: 'Thermometer',   type: 'boolean', entityId: 'binary_sensor.heating_active', mockValue: 'on', onLabel: 'Heating on', offLabel: 'Heating off' },
 ]
 
 export const PERSONS = [

@@ -1,4 +1,4 @@
-import { Lightbulb, Blinds, Moon, Thermometer, Settings } from 'lucide-react'
+import { ListTodo, Blinds, Moon, Thermometer, Settings } from 'lucide-react'
 import { useHA } from '../ha/HAProvider.jsx'
 import { ROOMS } from '../data/rooms.js'
 
@@ -51,12 +51,12 @@ export function BottomToolbar({ lightStates, blindStates, onAllLightsToggle, onB
         alignItems: 'center',
       }}>
 
-        {/* All lights toggle */}
+        {/* To dos */}
         <ToolbarBtn
-          icon={<Lightbulb size={23} strokeWidth={1.9} />}
-          label="All lights"
-          color={anyLightOn ? accentColor : mutedColor}
-          onClick={onAllLightsToggle}
+          icon={<ListTodo size={23} strokeWidth={1.9} />}
+          label="To dos"
+          color={mutedColor}
+          onClick={() => {}}
         />
 
         {/* Blinds toggle */}
