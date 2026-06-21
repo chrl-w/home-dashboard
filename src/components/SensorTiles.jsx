@@ -23,7 +23,7 @@ const WEATHER_ICONS = {
   'exceptional':         { Icon: Cloud,          color: 'var(--text-muted)' },
 }
 
-export function SensorTiles() {
+export function SensorTiles({ onWeatherOpen }) {
   const { entities } = useHA() || { entities: {} }
 
   const persons = PERSONS.map(p => {
@@ -102,8 +102,16 @@ export function SensorTiles() {
           iconColor = 'var(--text-muted)'
         }
 
+        const isWeather = s.id === 'outside'
         return (
-          <div key={s.id} style={chipStyle}>
+          <div
+            key={s.id}
+            onClick={isWeather ? onWeatherOpen : undefined}
+            style={{
+              ...chipStyle,
+              ...(isWeather ? { cursor: 'pointer', border: '1px solid var(--primary)', background: 'color-mix(in srgb, var(--primary) 16%, transparent)' } : {}),
+            }}
+          >
             <IconComponent size={14} strokeWidth={2} color={iconColor} />
             <span style={valueStyle}>{value}{s.unit}</span>
           </div>

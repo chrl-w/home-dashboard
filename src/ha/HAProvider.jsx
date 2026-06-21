@@ -72,13 +72,14 @@ export function HAProvider({ children }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function callService(domain, service, data) {
+  function callService(domain, service, data, { returnResponse = false } = {}) {
     if (!connRef.current) return Promise.resolve()
     return connRef.current.sendMessagePromise({
       type: 'call_service',
       domain,
       service,
       service_data: data,
+      ...(returnResponse ? { return_response: true } : {}),
     }).catch(() => {})
   }
 
