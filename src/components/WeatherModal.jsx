@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  X, MapPin, Droplets, Wind, Gauge,
+  X, Droplets, Wind, Gauge,
   Sun, Moon, Cloud, CloudSun, CloudMoon, CloudRain,
   CloudRainWind, CloudSnow, CloudLightning,
 } from 'lucide-react'
@@ -75,18 +75,18 @@ function fmtDay(isoString, index) {
   return d.toLocaleDateString('en-GB', { weekday: 'short' })
 }
 
-// Static fallback data
+// Static fallback data — hourly has no lo (single temp per slot)
 const MOCK_HOURLY = [
-  { time: 'Now',   hi: 14, lo: 13, condition: 'partlycloudy', pop: 10 },
-  { time: '16:00', hi: 14, lo: 13, condition: 'cloudy',       pop: 20 },
-  { time: '17:00', hi: 13, lo: 11, condition: 'rainy',        pop: 60 },
-  { time: '18:00', hi: 12, lo: 11, condition: 'rainy',        pop: 55 },
-  { time: '19:00', hi: 12, lo: 11, condition: 'partlycloudy', pop: 20 },
-  { time: '20:00', hi: 11, lo: 10, condition: 'clear-night',  pop: 5  },
-  { time: '21:00', hi: 10, lo: 9,  condition: 'clear-night',  pop: 5  },
-  { time: '22:00', hi: 10, lo: 8,  condition: 'cloudy',       pop: 10 },
-  { time: '23:00', hi: 9,  lo: 8,  condition: 'cloudy',       pop: 15 },
-  { time: '00:00', hi: 9,  lo: 7,  condition: 'cloudy',       pop: 15 },
+  { time: 'Now',   hi: 14, lo: null, condition: 'partlycloudy', pop: 10 },
+  { time: '16:00', hi: 14, lo: null, condition: 'cloudy',       pop: 20 },
+  { time: '17:00', hi: 13, lo: null, condition: 'rainy',        pop: 60 },
+  { time: '18:00', hi: 12, lo: null, condition: 'rainy',        pop: 55 },
+  { time: '19:00', hi: 12, lo: null, condition: 'partlycloudy', pop: 20 },
+  { time: '20:00', hi: 11, lo: null, condition: 'clear-night',  pop: 5  },
+  { time: '21:00', hi: 10, lo: null, condition: 'clear-night',  pop: 5  },
+  { time: '22:00', hi: 10, lo: null, condition: 'cloudy',       pop: 10 },
+  { time: '23:00', hi: 9,  lo: null, condition: 'cloudy',       pop: 15 },
+  { time: '00:00', hi: 9,  lo: null, condition: 'cloudy',       pop: 15 },
 ]
 
 const MOCK_DAILY = [
@@ -128,7 +128,7 @@ function ForecastRow({ icon, label, sublabel, pop, lo, hi, isLast }) {
           </span>
         ) : null}
       </div>
-      <div style={{ width: 34, textAlign: 'right', fontSize: 14, color: 'var(--text-muted)' }}>{fmt(lo)}</div>
+      <div style={{ width: 34, textAlign: 'right', fontSize: 14, color: 'var(--text-muted)' }}>{lo != null ? fmt(lo) : ''}</div>
       <div style={{ width: 34, textAlign: 'right', fontSize: 15, fontWeight: 600, color: 'var(--text-body)' }}>{fmt(hi)}</div>
     </div>
   )
@@ -148,13 +148,18 @@ export function WeatherModal({ onClose }) {
   const weatherAttrs = entities?.[WEATHER_ENTITY]?.attributes || {}
   const humidity    = weatherAttrs.humidity    != null ? weatherAttrs.humidity + '%'     : '72%'
   const windSpeed   = weatherAttrs.wind_speed  != null ? Math.round(weatherAttrs.wind_speed) + ' mph' : '9 mph'
-  const windBearing = weatherAttrs.wind_bearing != null ? bearingToDir(weatherAttrs.wind_bearing) : 'NE'
+  const windBearing = weatherAttrs.wind_bearing != null
+    ? (typeof weatherAttrs.wind_bearing === 'string' ? weatherAttrs.wind_bearing : bearingToDir(weatherAttrs.wind_bearing))
+    : 'NE'
   const pressure    = weatherAttrs.pressure    != null ? Math.round(weatherAttrs.pressure) + ' hPa'  : '1024 hPa'
-  const tempHi      = weatherAttrs.temperature != null ? weatherAttrs.temperature : 17
-  const tempLo      = 9 // HA doesn't expose daily low in current state
-  const feelsLike   = weatherAttrs.apparent_temperature != null
-    ? `Feels like ${Math.round(weatherAttrs.apparent_temperature)}°`
-    : 'Feels like 13°'
+
+  // hi/lo: use entity state attributes directly (available without forecast fetch)
+  const todayHi = weatherAttrs.temperature ?? (daily ?? MOCK_DAILY)[0]?.hi ?? null
+  const todayLo = weatherAttrs.templow     ?? (daily ?? MOCK_DAILY)[0]?.lo ?? null
+
+  // feels like from first hourly entry (met.no provides feels_like per hour)
+  const feelsLikeVal = hourly?.[0]?.feelsLike ?? null
+  const feelsLike = feelsLikeVal != null ? `Feels like ${Math.round(feelsLikeVal)}°` : null
 
   // Fetch forecasts from HA
   useEffect(() => {
@@ -170,7 +175,8 @@ export function WeatherModal({ onClose }) {
             time:      fmtHour(f.datetime, i),
             condition: f.condition,
             hi:        f.temperature,
-            lo:        f.templow ?? f.temperature - 3,
+            lo:        null, // hourly has one temp, not a hi/lo range
+            feelsLike: f.feels_like ?? null,
             pop:       Math.round((f.precipitation_probability ?? 0)),
           })))
         }
@@ -181,13 +187,20 @@ export function WeatherModal({ onClose }) {
             label:     i === 0 ? 'Today' : '',
             condition: f.condition,
             hi:        f.temperature,
-            lo:        f.templow ?? f.temperature - 8,
+            lo:        f.templow ?? null,
             pop:       Math.round((f.precipitation_probability ?? 0)),
           })))
         }
       })
-      .catch(() => {}) // silently fall back to mock
+      .catch(() => {})
   }, [callService])
+
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
 
   useEffect(() => {
     const fn = e => { if (e.key === 'Escape') onClose() }
@@ -220,7 +233,7 @@ export function WeatherModal({ onClose }) {
       <div style={{
         width: '100%',
         maxWidth: 480,
-        height: 'min(648px, calc(100dvh - 60px))',
+        height: 'min(760px, calc(100dvh - 40px))',
         display: 'flex',
         flexDirection: 'column',
         background: 'var(--surface-card)',
@@ -231,30 +244,14 @@ export function WeatherModal({ onClose }) {
 
         {/* Header */}
         <div style={{ flex: 'none', padding: '22px 24px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: 'var(--text-muted)',
-              }}>
-                Forecast
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 3 }}>
-                <MapPin size={16} strokeWidth={1.75} color="var(--text-muted)" style={{ flex: 'none' }} />
-                <span style={{
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 300,
-                  fontSize: 24,
-                  letterSpacing: '-0.01em',
-                  color: 'var(--text-body)',
-                  lineHeight: 1.1,
-                }}>
-                  Home
-                </span>
-              </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 22,
+              fontWeight: 600,
+              color: 'var(--text-body)',
+            }}>
+              Forecast
             </div>
             <button
               onClick={onClose}
@@ -290,13 +287,15 @@ export function WeatherModal({ onClose }) {
                 }}>
                   {curTemp}
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                  {fmt(tempHi)}&thinsp;/&thinsp;{fmt(tempLo)}
-                </div>
+                {(todayHi != null || todayLo != null) && (
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                    {fmt(todayHi)}&thinsp;/&thinsp;{fmt(todayLo)}
+                  </div>
+                )}
               </div>
               <div style={{ fontSize: 13, color: 'var(--text-body)', fontWeight: 600, marginTop: 5, whiteSpace: 'nowrap' }}>
-                {condLabel(condition)}{' '}
-                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>&middot; {feelsLike}</span>
+                {condLabel(condition)}
+                {feelsLike && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>{' '}&middot; {feelsLike}</span>}
               </div>
             </div>
           </div>
