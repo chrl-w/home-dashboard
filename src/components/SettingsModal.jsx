@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { X, Moon, Lightbulb, RotateCcw, Sofa, Bed, UtensilsCrossed, DoorOpen, Bath, ArrowUpNarrowWide } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Moon, Lightbulb, RotateCcw, Sofa, Bed, UtensilsCrossed, DoorOpen, Bath, ArrowUpNarrowWide, Sparkles, Thermometer, Shield, Music, Zap } from 'lucide-react'
 import { ROOMS } from '../data/rooms.js'
 
 const SCENE_META = {
@@ -11,8 +11,16 @@ const ROOM_ICONS = { Sofa, Bed, UtensilsCrossed, DoorOpen, Bath, ArrowUpNarrowWi
 
 const PRESETS = [0, 10, 30, 60, 100]
 
+const COMING_SOON = [
+  { name: 'Climate',      Icon: Thermometer },
+  { name: 'Security',     Icon: Shield },
+  { name: 'Media & audio', Icon: Music },
+  { name: 'Energy',       Icon: Zap },
+]
+
 export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose }) {
   const overlayRef = useRef(null)
+  const [view, setView] = useState('hub')
   const [activeRoomId, setActiveRoomId] = useState(ROOMS[0].id)
   const [activeScene, setActiveScene] = useState('relax')
   const [saveStatus, setSaveStatus] = useState('saved')
@@ -45,134 +53,256 @@ export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose })
       onClick={e => e.target === overlayRef.current && onClose()}
       style={{
         position: 'fixed', inset: 0, zIndex: 40,
-        background: 'rgba(0,0,0,0.55)',
-        backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+        background: 'rgba(0,0,0,0.5)',
+        backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)',
         display: 'flex', alignItems: 'flex-end',
       }}
     >
       <div style={{
         width: '100%',
-        height: '86dvh',
-        background: 'var(--surface-card)',
-        borderRadius: '24px 24px 0 0',
-        border: '1px solid var(--border)', borderBottom: 'none',
+        maxHeight: '88%',
+        background: '#12111A',
+        borderRadius: '28px 28px 0 0',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        boxShadow: '0 -24px 60px rgba(0,0,0,0.6)',
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
         paddingBottom: 'max(0px, env(safe-area-inset-bottom))',
       }}>
+
         {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '11px 0 4px', flexShrink: 0 }}>
+          <div style={{ width: 42, height: 5, borderRadius: 999, background: 'rgba(255,255,255,0.16)' }} />
         </div>
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '8px 20px 12px', flexShrink: 0 }}>
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--text-body)' }}>
-              Scene settings
-            </div>
-            <div style={{ marginTop: 6, height: 16, display: 'flex', alignItems: 'center' }}>
-              {saveStatus === 'saving' && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                  Saving
-                </span>
-              )}
-              {saveStatus === 'saved' && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#2EC882' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                  Saved
-                </span>
-              )}
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 6, display: 'flex' }}>
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Room pills */}
-        <div style={{ display: 'flex', gap: 8, padding: '0 20px 10px', flexShrink: 0, overflowX: 'auto' }}>
-          {ROOMS.map(room => {
-            const RoomIcon = ROOM_ICONS[room.icon]
-            const isActive = activeRoomId === room.id
-            return (
-              <button
-                key={room.id}
-                onClick={() => setActiveRoomId(room.id)}
-                style={{
-                  flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 16px', borderRadius: 999, border: '1px solid',
-                  borderColor: isActive ? 'rgba(124,92,252,0.55)' : 'rgba(255,255,255,0.09)',
-                  background: isActive ? 'rgba(124,92,252,0.14)' : 'transparent',
-                  color: isActive ? 'var(--primary-grad-to)' : 'var(--text-muted)',
-                  fontFamily: 'var(--font-sans)', fontSize: 14, fontWeight: 500,
-                  cursor: 'pointer', whiteSpace: 'nowrap',
-                  transition: 'all 150ms', WebkitTapHighlightColor: 'transparent',
-                }}
-              >
-                {RoomIcon && <RoomIcon size={14} />}
-                {room.name}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Scene pills */}
-        <div style={{ display: 'flex', gap: 8, padding: '0 20px 14px', flexShrink: 0 }}>
-          {['relax', 'bright'].map(sceneId => {
-            const { label, Icon } = SCENE_META[sceneId]
-            const isActive = activeScene === sceneId
-            return (
-              <button
-                key={sceneId}
-                onClick={() => setActiveScene(sceneId)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 16px', borderRadius: 999, border: '1px solid',
-                  borderColor: isActive ? 'rgba(124,92,252,0.55)' : 'rgba(255,255,255,0.09)',
-                  background: isActive ? 'rgba(124,92,252,0.14)' : 'transparent',
-                  color: isActive ? 'var(--primary-grad-to)' : 'var(--text-muted)',
-                  fontFamily: 'var(--font-sans)', fontSize: 14, fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 150ms', WebkitTapHighlightColor: 'transparent',
-                }}
-              >
-                <Icon size={14} />
-                {label}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Scrollable light list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px' }}>
-          {activeRoom.lights.map(light => {
-            const s = sceneStates[light.id] ?? { on: false, b: 0 }
-            const effectiveB = s.on ? s.b : 0
-            return (
-              <LightRow
-                key={light.id}
-                light={light}
-                effectiveB={effectiveB}
-                onSelect={p => { markSaving(); onUpdateLight(activeRoomId, activeScene, light.id, p === 0 ? { on: false, b: 0 } : { on: true, b: p }) }}
-              />
-            )
-          })}
-
+        <div style={{ flexShrink: 0, padding: '12px 22px 16px', position: 'relative' }}>
           <button
-            onClick={() => { markSaving(); onResetRoom(activeRoomId) }}
+            onClick={onClose}
             style={{
-              margin: '16px 0 8px', display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', color: 'var(--text-muted)',
-              cursor: 'pointer', padding: '6px 0',
-              fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500,
+              position: 'absolute', top: 8, right: 18,
+              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'transparent', border: 'none', borderRadius: 999,
+              color: '#6E6B82', cursor: 'pointer', transition: 'all 150ms',
             }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#E9E7F2'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#6E6B82'; e.currentTarget.style.background = 'transparent' }}
           >
-            <RotateCcw size={13} />
-            Reset {activeRoom.name} to defaults
+            <X size={20} />
           </button>
+
+          {view === 'hub' && (
+            <>
+              <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, letterSpacing: '-0.01em', color: '#F4F2FA', lineHeight: 1.1 }}>
+                Settings
+              </h1>
+              <div style={{ marginTop: 7, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em', color: '#6E6B82', textTransform: 'uppercase' }}>
+                Living · Home
+              </div>
+            </>
+          )}
+
+          {view === 'scenes' && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingRight: 40 }}>
+                <button
+                  onClick={() => setView('hub')}
+                  style={{
+                    flexShrink: 0, width: 34, height: 34,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: '#1A1927', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 10, color: '#E9E7F2', cursor: 'pointer', transition: 'all 150ms',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(124,92,252,0.4)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 25, fontWeight: 600, letterSpacing: '-0.01em', color: '#F4F2FA', lineHeight: 1.1 }}>
+                  Scenes
+                </h1>
+              </div>
+              <div style={{ marginTop: 9, height: 16, display: 'flex', alignItems: 'center' }}>
+                {saveStatus === 'saving' && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6E6B82' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    Saving
+                  </span>
+                )}
+                {saveStatus === 'saved' && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#2EC882' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    Saved
+                  </span>
+                )}
+              </div>
+            </>
+          )}
         </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px' }}>
+
+          {/* HUB VIEW */}
+          {view === 'hub' && (
+            <>
+              <button
+                onClick={() => setView('scenes')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  width: '100%', padding: '16px 4px',
+                  border: 'none', borderBottom: '1px solid rgba(255,255,255,0.055)',
+                  background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                  transition: 'background 150ms',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <span style={{
+                  flexShrink: 0, width: 42, height: 42, borderRadius: 12,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(124,92,252,0.14)', color: '#9F7AEA',
+                  boxShadow: '0 0 18px rgba(124,92,252,0.18)',
+                }}>
+                  <Sparkles size={19} />
+                </span>
+                <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 17, fontWeight: 500, color: '#E9E7F2' }}>Scenes</span>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: '#6E6B82' }}>Brightness moods per room</span>
+                </span>
+                <ChevronRight size={19} color="#6E6B82" />
+              </button>
+
+              {COMING_SOON.map(({ name, Icon }) => (
+                <div
+                  key={name}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    width: '100%', padding: '16px 4px',
+                    borderBottom: '1px solid rgba(255,255,255,0.055)',
+                    opacity: 0.45, cursor: 'not-allowed',
+                  }}
+                >
+                  <span style={{
+                    flexShrink: 0, width: 42, height: 42, borderRadius: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: '#1A1927', color: '#6E6B82',
+                  }}>
+                    <Icon size={19} />
+                  </span>
+                  <span style={{ flex: 1, fontFamily: 'var(--font-sans)', fontSize: 17, fontWeight: 500, color: '#E9E7F2' }}>{name}</span>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em',
+                    textTransform: 'uppercase', color: '#6E6B82',
+                    border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999,
+                    padding: '3px 9px', flexShrink: 0,
+                  }}>
+                    Soon
+                  </span>
+                </div>
+              ))}
+              <div style={{ height: 14 }} />
+            </>
+          )}
+
+          {/* SCENES VIEW */}
+          {view === 'scenes' && (
+            <>
+              {/* Room pills */}
+              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+                {ROOMS.map(room => {
+                  const RoomIcon = ROOM_ICONS[room.icon]
+                  const isActive = activeRoomId === room.id
+                  return (
+                    <button
+                      key={room.id}
+                      onClick={() => setActiveRoomId(room.id)}
+                      style={{
+                        flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '9px 16px', borderRadius: 999, border: '1px solid',
+                        borderColor: isActive ? 'rgba(124,92,252,0.55)' : 'rgba(255,255,255,0.09)',
+                        background: isActive ? 'rgba(124,92,252,0.14)' : 'transparent',
+                        color: isActive ? '#9F7AEA' : '#6E6B82',
+                        fontFamily: 'var(--font-sans)', fontSize: 15, fontWeight: 500,
+                        whiteSpace: 'nowrap', cursor: 'pointer',
+                        transition: 'all 150ms', WebkitTapHighlightColor: 'transparent',
+                      }}
+                    >
+                      {RoomIcon && <RoomIcon size={15} />}
+                      {room.name}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Scene pills */}
+              <div style={{ marginTop: 10, display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+                {['relax', 'bright'].map(sceneId => {
+                  const { label, Icon } = SCENE_META[sceneId]
+                  const isActive = activeScene === sceneId
+                  return (
+                    <button
+                      key={sceneId}
+                      onClick={() => setActiveScene(sceneId)}
+                      style={{
+                        flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '9px 16px', borderRadius: 999, border: '1px solid',
+                        borderColor: isActive ? 'rgba(124,92,252,0.55)' : 'rgba(255,255,255,0.09)',
+                        background: isActive ? 'rgba(124,92,252,0.14)' : 'transparent',
+                        color: isActive ? '#9F7AEA' : '#6E6B82',
+                        fontFamily: 'var(--font-sans)', fontSize: 15, fontWeight: 500,
+                        cursor: 'pointer',
+                        transition: 'all 150ms', WebkitTapHighlightColor: 'transparent',
+                      }}
+                    >
+                      <Icon size={15} />
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Light rows */}
+              <div style={{ marginTop: 4 }}>
+                {activeRoom.lights.map(light => {
+                  const s = sceneStates[light.id] ?? { on: false, b: 0 }
+                  const effectiveB = s.on ? s.b : 0
+                  return (
+                    <LightRow
+                      key={light.id}
+                      light={light}
+                      effectiveB={effectiveB}
+                      onSelect={p => { markSaving(); onUpdateLight(activeRoomId, activeScene, light.id, p === 0 ? { on: false, b: 0 } : { on: true, b: p }) }}
+                    />
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Footer — scenes only */}
+        {view === 'scenes' && (
+          <div style={{ flexShrink: 0, padding: '16px 22px 34px' }}>
+            <button
+              onClick={() => { markSaving(); onResetRoom(activeRoomId) }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 9,
+                background: 'transparent', border: 'none', padding: 0,
+                color: '#6E6B82', fontFamily: 'var(--font-sans)', fontSize: 14,
+                cursor: 'pointer', transition: 'color 150ms',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#9F7AEA' }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#6E6B82' }}
+            >
+              <RotateCcw size={16} />
+              <span>Reset {activeRoom.name} to defaults</span>
+            </button>
+          </div>
+        )}
+
+        {/* Hub bottom spacer */}
+        {view === 'hub' && <div style={{ flexShrink: 0, height: 22 }} />}
       </div>
     </div>
   )
@@ -180,24 +310,23 @@ export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose })
 
 function LightRow({ light, effectiveB, onSelect }) {
   return (
-    <div style={{ padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.055)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+    <div style={{ padding: '18px 0', borderBottom: '1px solid rgba(255,255,255,0.055)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{
-          fontFamily: 'var(--font-sans)', fontSize: 16, fontWeight: 500,
-          color: effectiveB > 0 ? 'var(--text-body)' : 'var(--text-muted)',
-          transition: 'color 200ms',
+          flex: 1, fontFamily: 'var(--font-sans)', fontSize: 17, fontWeight: 500,
+          color: '#E9E7F2',
         }}>
           {light.name}
         </span>
         <span style={{
-          fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
-          color: effectiveB > 0 ? 'var(--primary-grad-to)' : 'rgba(255,255,255,0.28)',
+          fontFamily: 'var(--font-mono)', fontSize: 14, letterSpacing: '0.04em',
+          color: effectiveB > 0 ? '#9F7AEA' : 'rgba(255,255,255,0.28)',
           transition: 'color 200ms',
         }}>
           {effectiveB === 0 ? 'Off' : `${effectiveB}%`}
         </span>
       </div>
-      <div style={{ display: 'flex', gap: 7 }}>
+      <div style={{ marginTop: 14, display: 'flex', gap: 7 }}>
         {PRESETS.map(p => {
           const isActive = effectiveB === p
           return (
@@ -209,8 +338,8 @@ function LightRow({ light, effectiveB, onSelect }) {
                 borderRadius: 9, border: '1px solid',
                 borderColor: isActive ? 'rgba(124,92,252,0.55)' : 'rgba(255,255,255,0.09)',
                 background: isActive ? 'rgba(124,92,252,0.14)' : 'transparent',
-                color: isActive ? 'var(--primary-grad-to)' : 'var(--text-muted)',
-                fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600,
+                color: isActive ? '#9F7AEA' : '#6E6B82',
+                fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.02em',
                 textAlign: 'center', cursor: 'pointer',
                 transition: 'all 120ms', WebkitTapHighlightColor: 'transparent',
               }}
