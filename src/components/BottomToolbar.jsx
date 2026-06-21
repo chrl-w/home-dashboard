@@ -2,7 +2,7 @@ import { Lightbulb, Blinds, Moon, Thermometer, Settings } from 'lucide-react'
 import { useHA } from '../ha/HAProvider.jsx'
 import { ROOMS } from '../data/rooms.js'
 
-export function BottomToolbar({ lightStates, blindStates, onAllLightsToggle, onBlindsToggle, onGoodnight }) {
+export function BottomToolbar({ lightStates, blindStates, onAllLightsToggle, onBlindsToggle, onGoodnight, onSettings }) {
   const { signOut } = useHA() || {}
 
   const anyLightOn = ROOMS.some(room =>
@@ -112,12 +112,12 @@ export function BottomToolbar({ lightStates, blindStates, onAllLightsToggle, onB
           onClick={() => {}}
         />
 
-        {/* Settings — sign out */}
+        {/* Settings */}
         <ToolbarBtn
           icon={<Settings size={23} strokeWidth={1.9} />}
           label="Settings"
           color={mutedColor}
-          onClick={signOut}
+          onClick={onSettings}
         />
 
       </div>
