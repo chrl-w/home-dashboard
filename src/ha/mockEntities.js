@@ -25,6 +25,9 @@ export const MOCK_ENTITIES = {
   'sensor.house_chopsy_outdoor_temperature':     { state: '14.2', attributes: { unit_of_measurement: '°C', friendly_name: 'Outside temperature' } },
   'sensor.house_chopsy_weather_condition':       { state: 'partlycloudy', attributes: { friendly_name: 'Weather condition' } },
 
+  // Blind reason
+  'input_select.living_room_blinds_reason': { state: 'Sunset', attributes: { friendly_name: 'Living room blinds reason' } },
+
   // Persons
   'person.charlie': { state: 'home', attributes: { friendly_name: 'Charlie' } },
   'person.tom':     { state: 'not_home', attributes: { friendly_name: 'Tom' } },

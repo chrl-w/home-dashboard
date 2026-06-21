@@ -4,8 +4,11 @@ import { HAProvider, useHA } from './ha/HAProvider.jsx'
 import { Header } from './components/Header.jsx'
 import { SensorTiles } from './components/SensorTiles.jsx'
 import { BottomToolbar } from './components/BottomToolbar.jsx'
+import { BlindsModal } from './components/BlindsModal.jsx'
+import { SettingsModal } from './components/SettingsModal.jsx'
 import { RoomCard } from './components/RoomCard.jsx'
 import { ROOMS } from './data/rooms.js'
+import { useSceneSettings } from './hooks/useSceneSettings.js'
 
 function initLightStates() {
   const states = {}
@@ -33,6 +36,9 @@ function Dashboard() {
   const [lightStates, setLightStates] = useState(initLightStates)
   const [blindStates, setBlindStates] = useState(initBlindStates)
   const [expanded, setExpanded] = useState(new Set(['living']))
+  const [showBlindsModal, setShowBlindsModal] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const { settings, updateLight, resetRoom, effectiveRooms } = useSceneSettings()
 
   const totalOn = ROOMS.reduce((acc, room) =>
     acc + room.lights.filter(l => lightStates[room.id]?.[l.id]?.on).length, 0)
@@ -153,7 +159,7 @@ function Dashboard() {
       <div>
         <p className="pos-eyebrow--muted" style={{ padding: '14px 22px 10px' }}>Rooms</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 11, padding: '0 20px 32px' }}>
-          {ROOMS.map(room => (
+          {effectiveRooms.map(room => (
             <RoomCard
               key={room.id}
               room={room}
@@ -173,9 +179,27 @@ function Dashboard() {
         lightStates={lightStates}
         blindStates={blindStates}
         onAllLightsToggle={handleAllLightsToggle}
-        onBlindsToggle={handleBlindsToggle}
+        onBlindsToggle={() => setShowBlindsModal(true)}
         onGoodnight={handleGoodnight}
+        onSettings={() => setShowSettings(true)}
       />
+
+      {showBlindsModal && (
+        <BlindsModal
+          blindStates={blindStates}
+          onBlindChange={handleBlindChange}
+          onClose={() => setShowBlindsModal(false)}
+        />
+      )}
+
+      {showSettings && (
+        <SettingsModal
+          settings={settings}
+          onUpdateLight={updateLight}
+          onResetRoom={resetRoom}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
   )
 }
