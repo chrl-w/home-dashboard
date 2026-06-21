@@ -5,6 +5,7 @@ import { Dimmer } from './Dimmer.jsx'
 import { BlindSlider } from './BlindSlider.jsx'
 import { useHA } from '../ha/HAProvider.jsx'
 
+
 const SCENE_ICONS = { Power, Moon, Lightbulb }
 
 function deriveActiveScene(scenes, lightStates) {
@@ -29,8 +30,9 @@ function deriveActiveScene(scenes, lightStates) {
 function getRoomSubtitle(room, lightStates, blindStates) {
   const onCount = room.lights.filter(l => lightStates[l.id]?.on).length
   const total = room.lights.length
-  if (onCount === 0) return 'All off'
-  let s = onCount === total ? 'All lights on' : `${onCount} of ${total} lights on`
+  let s = onCount === 0 ? 'All off'
+    : onCount === total ? 'All lights on'
+    : `${onCount} of ${total} lights on`
   if (room.blinds && blindStates) {
     const avg = Math.round((blindStates.left + blindStates.right) / 2)
     s += ` · blinds ${avg}%`
@@ -39,12 +41,16 @@ function getRoomSubtitle(room, lightStates, blindStates) {
 }
 
 export function RoomCard({ room, lightStates, blindStates, expanded, onToggleExpand, onLightChange, onBlindChange, onScene }) {
-  const { callService } = useHA() || {}
+  const { callService, entities } = useHA() || {}
   const detailRef = useRef(null)
   const [detailHeight, setDetailHeight] = useState(0)
   const RoomIcon = Icons[room.icon] || Icons.Home
   const anyOn = room.lights.some(l => lightStates[l.id]?.on)
-  const glowOpacity = room.lights.filter(l => lightStates[l.id]?.on).length / room.lights.length
+  const lightsOn = room.lights.filter(l => lightStates[l.id]?.on)
+  const avgBrightness = lightsOn.length > 0
+    ? lightsOn.reduce((sum, l) => sum + (lightStates[l.id]?.b || 100), 0) / lightsOn.length / 100
+    : 0
+  const glowOpacity = anyOn ? Math.max(0.3, avgBrightness) : 0
   const activeScene = deriveActiveScene(room.scenes, lightStates)
 
   useEffect(() => {
@@ -102,7 +108,7 @@ export function RoomCard({ room, lightStates, blindStates, expanded, onToggleExp
     <div className={`pos-room-card${anyOn ? ' pos-room-card--on' : ''}`}>
       <div
         className="pos-room-card__glow"
-        style={{ opacity: anyOn ? Math.max(0.3, glowOpacity) : 0 }}
+        style={{ opacity: glowOpacity }}
       />
 
       {/* Header */}
@@ -216,12 +222,16 @@ export function RoomCard({ room, lightStates, blindStates, expanded, onToggleExp
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {room.lights.map(light => {
                 const ls = lightStates[light.id] || { on: false, b: 100 }
+                const unavailable = light.entityId
+                  ? entities?.[light.entityId]?.state === 'unavailable'
+                  : false
                 return (
                   <Dimmer
                     key={light.id}
                     light={light}
                     brightness={ls.b}
                     on={ls.on}
+                    unavailable={unavailable}
                     onToggle={() => handleToggle(light.id)}
                     onBrightnessChange={(b, turnOn) => handleDimmer(light.id, b, turnOn)}
                   />

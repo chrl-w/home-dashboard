@@ -138,9 +138,9 @@ export function BlindsModal({ blindStates, onBlindChange, onClose }) {
             const pos = side === 'left' ? left : right
             return (
               <div key={side}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, gap: 4 }}>
                   <span style={miniLabelStyle}>{side === 'left' ? '← Left' : 'Right →'}</span>
-                  <span style={{ ...miniLabelStyle, color: 'var(--primary-grad-to)' }}>{pos}% · {posLabel(pos)}</span>
+                  <span style={{ ...miniLabelStyle, color: 'var(--primary-grad-to)', flexShrink: 0 }}>{pos}%</span>
                 </div>
                 <MiniSlider value={pos} onChange={v => setBlind(side, v)} />
               </div>

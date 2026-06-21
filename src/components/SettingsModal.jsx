@@ -23,7 +23,7 @@ export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose })
   const [view, setView] = useState('hub')
   const [activeRoomId, setActiveRoomId] = useState(ROOMS[0].id)
   const [activeScene, setActiveScene] = useState('relax')
-  const [saveStatus, setSaveStatus] = useState('saved')
+  const [saveStatus, setSaveStatus] = useState(null)
   const saveTimer = useRef(null)
 
   useEffect(() => {
@@ -92,14 +92,9 @@ export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose })
           </button>
 
           {view === 'hub' && (
-            <>
-              <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, letterSpacing: '-0.01em', color: '#F4F2FA', lineHeight: 1.1 }}>
-                Settings
-              </h1>
-              <div style={{ marginTop: 7, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em', color: '#6E6B82', textTransform: 'uppercase' }}>
-                Living · Home
-              </div>
-            </>
+            <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, letterSpacing: '-0.01em', color: '#F4F2FA', lineHeight: 1.1 }}>
+              Settings
+            </h1>
           )}
 
           {view === 'scenes' && (
@@ -135,6 +130,7 @@ export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose })
                     Saved
                   </span>
                 )}
+                {saveStatus === null && <span />}
               </div>
             </>
           )}
@@ -209,7 +205,7 @@ export function SettingsModal({ settings, onUpdateLight, onResetRoom, onClose })
           {view === 'scenes' && (
             <>
               {/* Room pills */}
-              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {ROOMS.map(room => {
                   const RoomIcon = ROOM_ICONS[room.icon]
                   const isActive = activeRoomId === room.id
