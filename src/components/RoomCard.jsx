@@ -115,6 +115,9 @@ export function RoomCard({ room, lightStates, blindStates, expanded, onToggleExp
           padding: '14px 16px',
           cursor: 'pointer',
           position: 'relative',
+          WebkitTapHighlightColor: 'transparent',
+          outline: 'none',
+          userSelect: 'none',
         }}
       >
         <div className={`pos-icon-tile${anyOn ? ' pos-icon-tile--on' : ''}`}>

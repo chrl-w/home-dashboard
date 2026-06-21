@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AreaProvider } from './personal-os/theme/area-provider'
 import { HAProvider, useHA } from './ha/HAProvider.jsx'
 import { Header } from './components/Header.jsx'
@@ -32,13 +32,32 @@ function initBlindStates() {
 }
 
 function Dashboard() {
-  const { status, callService } = useHA() || {}
+  const { status, entities, callService } = useHA() || {}
   const [lightStates, setLightStates] = useState(initLightStates)
   const [blindStates, setBlindStates] = useState(initBlindStates)
-  const [expanded, setExpanded] = useState(new Set(['living']))
+  const [expanded, setExpanded] = useState(new Set())
   const [showBlindsModal, setShowBlindsModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const { settings, updateLight, resetRoom, effectiveRooms } = useSceneSettings()
+
+  useEffect(() => {
+    if (!entities) return
+    setBlindStates(prev => {
+      const next = { ...prev }
+      ROOMS.forEach(room => {
+        if (!room.blinds) return
+        const leftPos = entities[room.blinds.left?.entityId]?.attributes?.current_position
+        const rightPos = entities[room.blinds.right?.entityId]?.attributes?.current_position
+        if (leftPos != null || rightPos != null) {
+          next[room.id] = {
+            left: leftPos ?? prev[room.id]?.left ?? 100,
+            right: rightPos ?? prev[room.id]?.right ?? 100,
+          }
+        }
+      })
+      return next
+    })
+  }, [entities])
 
   const totalOn = ROOMS.reduce((acc, room) =>
     acc + room.lights.filter(l => lightStates[room.id]?.[l.id]?.on).length, 0)
