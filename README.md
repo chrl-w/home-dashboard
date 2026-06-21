@@ -72,57 +72,9 @@ Without this helper, scene customisations will fall back to localStorage only an
 
 ## Entity IDs
 
-All entity IDs are hardcoded in [`src/data/rooms.js`](src/data/rooms.js). Update these to match your HA setup.
+All entity IDs are hardcoded in [`src/data/rooms.js`](src/data/rooms.js) — that's the single source of truth. Update them there to match your HA setup.
 
-### Lights
-
-| Entity ID | Room |
-|-----------|------|
-| `light.living_room_ceiling` | Living Room |
-| `light.living_room_floor_lamp` | Living Room |
-| `light.living_room_ball_lamp` | Living Room |
-| `light.living_room_light_desk_yellow` | Living Room |
-| `light.bedroom_ceiling` | Bedroom |
-| `light.bedroom_light_desk_black` | Bedroom |
-| `light.kitchen_ceiling` | Kitchen |
-| `light.hallway_lights` | Hallway |
-| `light.bathroom_lights` | Bathroom |
-| `light.landing_ceiling` | Landing |
-
-### Blinds
-
-| Entity ID | Location |
-|-----------|----------|
-| `cover.living_room_blind_left` | Living Room |
-| `cover.living_room_blind_right` | Living Room |
-
-### Sensors
-
-| Entity ID | Purpose |
-|-----------|---------|
-| `sensor.heating_temperature` | Living room temp |
-| `sensor.bedroom_temperature` | Bedroom temp |
-| `sensor.house_chopsy_outdoor_temperature` | Outdoor temp |
-| `sensor.house_chopsy_weather_condition` | Weather condition string |
-| `weather.forecast_home` | Forecast data |
-| `sensor.octopus_energy_electricity_*_previous_accumulative_cost` | Daily electricity cost |
-| `sensor.octopus_energy_gas_previous_accumulative_cost` | Daily gas cost |
-| `binary_sensor.heating_active` | Heating on/off |
-
-> **Note:** The Octopus Energy electricity entity ID contains your MPAN/meter serial — check the exact ID in your HA instance under **Developer Tools → States**.
-
-### Persons
-
-| Entity ID | Who |
-|-----------|-----|
-| `person.charlie` | Charlie |
-| `person.tom` | Tom |
-
-### Helper (required — see setup above)
-
-| Entity ID | Purpose |
-|-----------|---------|
-| `input_text.dashboard_scene_settings` | Scene brightness persistence |
+> **Note:** The Octopus Energy electricity sensor ID contains your MPAN/meter serial number, so it'll be unique to your account. Find the exact ID in HA under **Developer Tools → States**.
 
 ---
 
